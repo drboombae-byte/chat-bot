@@ -3,27 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF Stats Pro</title>
+    <title>FF Player Lookup | Pro</title>
     <style>
-        :root { --primary: #ff4655; --bg: #0f1923; --card: #1f2933; --text: #ece8e1; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 40px 20px; }
-        .container { background: var(--card); padding: 2rem; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top: 4px solid var(--primary); }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 2; padding: 12px; border-radius: 5px; border: 1px solid #444; background: #111; color: white; }
-        select { flex: 1; padding: 12px; border-radius: 5px; background: #111; color: white; border: 1px solid #444; }
-        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:disabled { background: #555; cursor: not-allowed; }
-        #result { margin-top: 25px; display: none; border-top: 1px solid #333; padding-top: 20px; }
-        .info-row { display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.03); margin-bottom: 5px; border-radius: 5px; }
-        .label { color: #888; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
-        .val { font-weight: bold; color: #fff; }
-        .error { color: #ff4655; font-size: 0.9rem; margin-top: 15px; text-align: center; }
+        :root {
+            --primary: #ff4655;
+            --bg: #0f1923;
+            --card: #1f2933;
+            --text: #ece8e1;
+            --accent: #00ffcc;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 50px;
+        }
+        .container {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            width: 90%;
+            max-width: 450px;
+            border-top: 5px solid var(--primary);
+        }
+        h2 { text-align: center; margin-bottom: 25px; letter-spacing: 1px; }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input, select {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0a1118;
+            color: #fff;
+            font-size: 1rem;
+        }
+        input { flex: 2; }
+        select { flex: 1; cursor: pointer; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        button:hover { background: #e33b48; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background: #444; cursor: not-allowed; }
+
+        #result {
+            margin-top: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid transparent;
+        }
+        .info-row:hover { border-left-color: var(--accent); background: rgba(255,255,255,0.06); }
+        
+        .label { color: #aaa; font-size: 0.8rem; text-transform: uppercase; font-weight: 600; }
+        .val { font-weight: bold; color: var(--accent); }
+        
+        .error {
+            color: var(--primary);
+            background: rgba(255, 70, 85, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="margin-top:0">Free Fire Lookup</h2>
+    <h2>FREE FIRE STATS</h2>
+    
     <div class="input-group">
         <input type="text" id="uid" placeholder="Enter Player UID">
         <select id="region">
@@ -31,55 +111,87 @@
             <option value="br">BR</option>
             <option value="sg">SG</option>
             <option value="us">US</option>
+            <option value="eu">EU</option>
         </select>
     </div>
-    <button id="btn" onclick="fetchData()">SEARCH PLAYER</button>
-    <div id="error" class="error"></div>
+    
+    <button id="searchBtn" onclick="fetchPlayer()">SEARCH PLAYER</button>
+    
+    <div id="errorBox" class="error"></div>
 
     <div id="result">
-        <div class="info-row"><span class="label">Nickname</span><span class="val" id="n"></span></div>
-        <div class="info-row"><span class="label">Level</span><span class="val" id="l"></span></div>
-        <div class="info-row"><span class="label">Region</span><span class="val" id="r"></span></div>
-        <div class="info-row"><span class="label">Likes</span><span class="val" id="lk"></span></div>
-        <div class="info-row"><span class="label">Rank Points</span><span class="val" id="rp"></span></div>
+        <div class="info-row"><span class="label">Nickname</span><span class="val" id="res-name">-</span></div>
+        <div class="info-row"><span class="label">Account ID</span><span class="val" id="res-id">-</span></div>
+        <div class="info-row"><span class="label">Level</span><span class="val" id="res-level">-</span></div>
+        <div class="info-row"><span class="label">Region</span><span class="val" id="res-region">-</span></div>
+        <div class="info-row"><span class="label">Likes</span><span class="val" id="res-likes">-</span></div>
+        <div class="info-row"><span class="label">Rank Points</span><span class="val" id="res-rank">-</span></div>
     </div>
 </div>
 
 <script>
-async function fetchData() {
-    const btn = document.getElementById('btn');
-    const uid = document.getElementById('uid').value;
+async function fetchPlayer() {
+    const uid = document.getElementById('uid').value.trim();
     const region = document.getElementById('region').value;
-    const resDiv = document.getElementById('result');
-    const errDiv = document.getElementById('error');
+    const btn = document.getElementById('searchBtn');
+    const resultDiv = document.getElementById('result');
+    const errorBox = document.getElementById('errorBox');
 
-    if(!uid) return errDiv.innerText = "Please enter a UID";
+    if (!uid) {
+        showError("Please enter a valid UID.");
+        return;
+    }
 
+    // UI Reset
+    errorBox.style.display = "none";
+    resultDiv.style.display = "none";
     btn.disabled = true;
-    btn.innerText = "SEARCHING...";
-    errDiv.innerText = "";
-    resDiv.style.display = "none";
+    btn.innerText = "FETCHING DATA...";
 
     try {
-        const response = await fetch(`https://free-ff-api.vercel.app/api/info?uid=${uid}&region=${region}`);
+        // Construct the API URL
+        const targetUrl = `https://free-ff-api.vercel.app/api/info?uid=${uid}&region=${region}`;
+        
+        // Use corsproxy.io to bypass the CORS block
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) throw new Error("API Limit reached or Server is down.");
+
         const data = await response.json();
 
-        if(!data.basicInfo) throw new Error(data.error || "Player not found");
+        // The API returns data wrapped in 'basicInfo'
+        if (data.error || !data.basicInfo) {
+            throw new Error(data.error || "Player not found. Check UID/Region.");
+        }
 
-        document.getElementById('n').innerText = data.basicInfo.nickname;
-        document.getElementById('l').innerText = data.basicInfo.level;
-        document.getElementById('r').innerText = data.basicInfo.region;
-        document.getElementById('lk').innerText = data.basicInfo.liked;
-        document.getElementById('rp').innerText = data.basicInfo.rank;
-        
-        resDiv.style.display = "block";
-    } catch (e) {
-        errDiv.innerText = e.message;
+        const info = data.basicInfo;
+
+        // Populate the UI
+        document.getElementById('res-name').innerText = info.nickname || "Unknown";
+        document.getElementById('res-id').innerText = info.accountId || uid;
+        document.getElementById('res-level').innerText = info.level || "0";
+        document.getElementById('res-region').innerText = info.region || region.toUpperCase();
+        document.getElementById('res-likes').innerText = info.liked || "0";
+        document.getElementById('res-rank').innerText = info.rankingPoints || info.rank || "N/A";
+
+        resultDiv.style.display = "block";
+
+    } catch (err) {
+        showError(err.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "SEARCH PLAYER";
     }
 }
+
+function showError(msg) {
+    const errorBox = document.getElementById('errorBox');
+    errorBox.innerText = msg;
+    errorBox.style.display = "block";
+}
 </script>
+
 </body>
 </html>
