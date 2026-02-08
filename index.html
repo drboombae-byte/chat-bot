@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF Stats Pro</title>
+    <style>
+        :root { --primary: #ff4655; --bg: #0f1923; --card: #1f2933; --text: #ece8e1; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 40px 20px; }
+        .container { background: var(--card); padding: 2rem; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top: 4px solid var(--primary); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 2; padding: 12px; border-radius: 5px; border: 1px solid #444; background: #111; color: white; }
+        select { flex: 1; padding: 12px; border-radius: 5px; background: #111; color: white; border: 1px solid #444; }
+        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        #result { margin-top: 25px; display: none; border-top: 1px solid #333; padding-top: 20px; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.03); margin-bottom: 5px; border-radius: 5px; }
+        .label { color: #888; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+        .val { font-weight: bold; color: #fff; }
+        .error { color: #ff4655; font-size: 0.9rem; margin-top: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="margin-top:0">Free Fire Lookup</h2>
+    <div class="input-group">
+        <input type="text" id="uid" placeholder="Enter Player UID">
+        <select id="region">
+            <option value="ind">IND</option>
+            <option value="br">BR</option>
+            <option value="sg">SG</option>
+            <option value="us">US</option>
+        </select>
+    </div>
+    <button id="btn" onclick="fetchData()">SEARCH PLAYER</button>
+    <div id="error" class="error"></div>
+
+    <div id="result">
+        <div class="info-row"><span class="label">Nickname</span><span class="val" id="n"></span></div>
+        <div class="info-row"><span class="label">Level</span><span class="val" id="l"></span></div>
+        <div class="info-row"><span class="label">Region</span><span class="val" id="r"></span></div>
+        <div class="info-row"><span class="label">Likes</span><span class="val" id="lk"></span></div>
+        <div class="info-row"><span class="label">Rank Points</span><span class="val" id="rp"></span></div>
+    </div>
+</div>
+
+<script>
+async function fetchData() {
+    const btn = document.getElementById('btn');
+    const uid = document.getElementById('uid').value;
+    const region = document.getElementById('region').value;
+    const resDiv = document.getElementById('result');
+    const errDiv = document.getElementById('error');
+
+    if(!uid) return errDiv.innerText = "Please enter a UID";
+
+    btn.disabled = true;
+    btn.innerText = "SEARCHING...";
+    errDiv.innerText = "";
+    resDiv.style.display = "none";
+
+    try {
+        const response = await fetch(`https://free-ff-api.vercel.app/api/info?uid=${uid}&region=${region}`);
+        const data = await response.json();
+
+        if(!data.basicInfo) throw new Error(data.error || "Player not found");
+
+        document.getElementById('n').innerText = data.basicInfo.nickname;
+        document.getElementById('l').innerText = data.basicInfo.level;
+        document.getElementById('r').innerText = data.basicInfo.region;
+        document.getElementById('lk').innerText = data.basicInfo.liked;
+        document.getElementById('rp').innerText = data.basicInfo.rank;
+        
+        resDiv.style.display = "block";
+    } catch (e) {
+        errDiv.innerText = e.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "SEARCH PLAYER";
+    }
+}
+</script>
+</body>
+</html>
